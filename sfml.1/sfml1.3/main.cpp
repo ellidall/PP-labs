@@ -17,7 +17,7 @@ int main()
     sf::RectangleShape door;
     door.setSize({80, 160});
     door.setPosition({100, 490});
-    door.setFillColor(sf::Color{0x0, 0x0, 0x0});
+    door.setFillColor(sf::Color{0x20, 0x20, 0x20});
     window.draw(door);
 
     sf::ConvexShape roof;
