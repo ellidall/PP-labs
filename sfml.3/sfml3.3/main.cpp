@@ -32,11 +32,11 @@ sf::Vector2f toEuclidean(float radius, float angle)
         radius * sin(angle)};
 }
 
-float getDistanseToBorder(float rotation)
+float getDistanseToBorder(float rotation, const float &roadRadius)
 {
     const sf::Vector2f vector = {
-        (eyeBallRadius.x) * std::cos(rotation),
-        (eyeBallRadius.y) * std::sin(rotation)};
+        roadRadius * std::cos(rotation),
+        roadRadius * std::sin(rotation)};
     return sqrt(vector.x * vector.x + vector.y * vector.y);
 }
 
@@ -48,61 +48,36 @@ float getDictanseToMouse(sf::Vector2f position, const sf::Vector2f &mousePositio
     return sqrt(vectorToMouse.x * vectorToMouse.x + vectorToMouse.y * vectorToMouse.y);
 }
 
-sf::Vector2f getOrigin(float rotation)
+void updateEye(Eye &eye, const sf::Vector2f &mousePosition, const float &roadRadius)
 {
-    return {
-        pupilRadius.x * std::cos(rotation),
-        pupilRadius.y * std::sin(rotation)};
-}
-
-void updateEye(Eye &eye, const sf::Vector2f &mousePosition)
-{
-    if (getDictanseToMouse(eyeBall1Position, mousePosition) < getDistanseToBorder(eye.pupil1Rotation))
+    if (getDictanseToMouse(eyeBall1Position, mousePosition) < getDistanseToBorder(eye.pupil1Rotation, roadRadius))
     {
-        if (getDictanseToMouse(eyeBall1Position, mousePosition) < 50)
-        {
-            eye.pupil1.setOrigin({0, 0});
-        }
-        else
-        {
-            eye.pupil1.setOrigin(getOrigin(eye.pupil1Rotation));
-        }
         eye.pupil1.setPosition(mousePosition);
     }
     else
     {
-        eye.pupil1.setOrigin({0, 0});
-        const sf::Vector2f pupil1Offset = toEuclidean(30, eye.pupil1Rotation);
+        const sf::Vector2f pupil1Offset = toEuclidean(roadRadius, eye.pupil1Rotation);
         eye.pupil1.setPosition(eye.pupil1Pos + pupil1Offset);
     }
-    if (getDictanseToMouse(eyeBall2Position, mousePosition) < getDistanseToBorder(eye.pupil2Rotation))
+    if (getDictanseToMouse(eyeBall2Position, mousePosition) < getDistanseToBorder(eye.pupil2Rotation, roadRadius))
     {
-        if (getDictanseToMouse(eyeBall2Position, mousePosition) < 50)
-        {
-            eye.pupil2.setOrigin({0, 0});
-        }
-        else
-        {
-            eye.pupil2.setOrigin(getOrigin(eye.pupil2Rotation));
-        }
         eye.pupil2.setPosition(mousePosition);
     }
     else
     {
-        eye.pupil2.setOrigin({0, 0});
-        const sf::Vector2f pupil2Offset = toEuclidean(30, eye.pupil2Rotation);
+        const sf::Vector2f pupil2Offset = toEuclidean(roadRadius, eye.pupil2Rotation);
         eye.pupil2.setPosition(eye.pupil2Pos + pupil2Offset);
     }
 }
 
-void update(const sf::Vector2f &mousePosition, Eye &eye)
+void update(const sf::Vector2f &mousePosition, Eye &eye, const float &roadRadius)
 {
     const sf::Vector2f delta1 = mousePosition - eye.pupil1Pos;
     eye.pupil1Rotation = atan2(delta1.y, delta1.x);
     const sf::Vector2f delta2 = mousePosition - eye.pupil2Pos;
     eye.pupil2Rotation = atan2(delta2.y, delta2.x);
 
-    updateEye(eye, mousePosition);
+    updateEye(eye, mousePosition, roadRadius);
 }
 
 void initEyeElement(
@@ -132,12 +107,9 @@ void initEye(Eye &eye)
     const sf::Color pupilColor = {0x00, 0x00, 0xFF};
 
     initEyeElement(eye.eyeBall1, eyeBallRadius, eyeBall1Position, eyeBallColor);
-
     initEyeElement(eye.eyeBall2, eyeBallRadius, eyeBall2Position, eyeBallColor);
-
     eye.pupil1Pos = {330.f, 300.f};
     initEyeElement(eye.pupil1, pupilRadius, eye.pupil1Pos, pupilColor);
-
     eye.pupil2Pos = {480.f, 300.f};
     initEyeElement(eye.pupil2, pupilRadius, eye.pupil2Pos, pupilColor);
 }
@@ -180,6 +152,7 @@ int main()
 {
     constexpr unsigned WINDOW_WIDTH = 800;
     constexpr unsigned WINDOW_HEIGHT = 600;
+    const float roadRadius = 30;
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
@@ -194,7 +167,7 @@ int main()
     while (window.isOpen())
     {
         pollEvent(window, mousePosition);
-        update(mousePosition, eye);
+        update(mousePosition, eye, roadRadius);
         redrawFrame(window, eye);
     }
 }
